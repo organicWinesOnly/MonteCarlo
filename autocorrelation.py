@@ -2,25 +2,51 @@ import numpy as np
 from typing import List
 
 
-def autocorrelation(maxtime: int, time: int, magnetization: List):
+def autocorrelation(maxtime: int, time: int, quanity: np.ndarray):
+    """ time displaced autocorrelation.
+
+    === Paramaters ===
+    maxtime: number of rounds the simulation is ran for
+    time: the time that the autocorrelation function will be evaluated at
+    magnetizaion: the meausred quanities that are being evaluated.
+    """
     assert time != maxtime
+    
     diff = maxtime - time
+
     coeff = 1 / diff
-    times = np.arange(diff)
-    sum1 = sum(magnetization[t_prime] * magnetization[t_prime + time] for
-               t_prime in times)
-    sum2 = sum(magnetization[t_prime] for t_prime in times)
-    sum3 = sum(magnetization[t_prime + time] for t_prime in times)
-    return coeff * sum1 - (sum2 * sum3) * coeff ** 2
+    assert quanity[:diff].shape == quanity[time:maxtime].shape
+    sum1 = np.sum(np.dot(quanity[:diff], quanity[time:maxtime]))
+    #sum2 = np.sum(quanity[:diff])
+    #sum3 = np.sum(quanity[time:maxtime])
+
+    #return sum1 * ( coeff - coeff ** 2)
+    return sum1 * (coeff - coeff ** 2 * sum1) # * sum2 * sum3
 
 
-def correlation_time(maxtime, magnetization):
-    zero_ = autocorrelation(maxtime, 0, magnetization)
-    times = np.arange(maxtime - 1)
-    integrand_ = []
-    for t in times:
-        integrand_.append(autocorrelation(maxtime, t, magnetization))
+def ic_time(maxtime, quanity):
+    """ calculate the integrated correlation time.
 
-    return sum(integrand_)
+    This time will be used to find independent values of measured quatities
+
+    === Paramaters ===
+    maxtime: number of rounds the simulation is ran for
+    magnetizaion: the meausred quanities that are being evaluated.
+    """
+    zero_ = autocorrelation(maxtime, 0, quanity)
+
+    a, b = 0, maxtime-1
+
+    h = 1
+
+    i_ = h * (1/2 * autocorrelation(maxtime, a, quanity) + 1/2 *
+            autocorrelation(maxtime, b, quanity)) / zero_
+
+    sum_ = np.sum(autocorrelation(maxtime, k, quanity) for k in range(a, b))
+
+    i_ += h * sum_ / zero_
+
+
+    return i_
 
 

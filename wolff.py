@@ -2,7 +2,7 @@
 """
 
 import matplotlib.pyplot as mp
-from MetropolisAlgortithm import Simulation
+from metropolisAlgortithm import Simulation
 from lattice import Plotts, Spin, Plotts3
 from Errors import *
 from typing import List

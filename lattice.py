@@ -16,7 +16,7 @@ from helpers_mc import flip_coin
 
 class Spin:
     """
-    Repersent a spin in the lattice
+    Repersent a spin in the lattice. Used for wolff algorithm.
 
     ==== attributes ===
     spin: spin value. Value can only be a one or zero.
@@ -46,12 +46,15 @@ class Lattice:
     ==== Attributes ===
     spins: collection of Spins representing the lattice
     size: size of lattice
-    energy: energy of lattice
+    total_energy: total energy per spin
+    m: mean magnetizaion per spin
     """
-    spins: List[Spins]
+    spins: np.ndarray #List[Spin]
     size: int
-    magnetization: float
+    m: float
     beta: float
+    temp: int
+    total_energy: int
 
     def __init__(self, n: int, temp: int, run_at: float) -> None:
         """Initialize Lattice class
@@ -64,43 +67,37 @@ class Lattice:
         run_at: temperture you want the system to come to
 
         Representation Invariants:
-        T = 0 or 1
+        temp = 0 or 1
         """
-        self.size = n
-        self.size_tot = n
-        if temp == 0:
-            k = flip_coin(-1, 1)
-            self.spins = [k for _ in range(n)]
-        else:
-            self.spins = [flip_coin(-1, 1) for _ in range(n)]
+        self.size = n  # needed?
 
-        self.magnetization = sum(self.spins)
-        self.temp = temp
+        # build lattice
+        # spin class is not needed for 1d metropolis
+        if temp == 0:
+            # k = flip_coin(-1, 1)
+            self.spins = np.array([1 for _ in range(n)])
+        else:
+            self.spins = np.array([flip_coin(-1, 1) for _ in range(n)])
+
+        self.m = np.sum(self.spins) / n
         self.beta = 1 / run_at
 
-        interaction_ = []
-        for k in range(self.size):
-            spin_j = self._neighbours(k)[1]
-            interaction_.append(spin_j * self.spins[k])
+        interaction_ = np.zeros(n)
 
-        self.energy = -1 * sum(interaction_) # * self.beta
+        for k in range(n):
+            spin_j = self._neighbours(k)
+            interaction_[k] = np.sum(spin_j) * self.spins[k]
 
-    def __copy__(self):
-        """Return a copy of the lattice"""
-        other = Lattice(self.size, self.temp, 1/self.beta)
-        other.spins = self.spins.copy()
-        other.magnetization = self.magnetization
-        other.energy = self.energy
-        # assert other.magnetization == self.magnetization
-        # assert other.spins is not self.spins
-        return other
+        self.total_energy = -1 * np.sum(interaction_) /self.size # J = 1
 
-    def _neighbours(self, site: int) -> List[int]:
+    def _neighbours(self, site: int) -> np.ndarray:
         """Return neighbouring spins [<left>, <right>].
 
-        Periodic Boundary conditions are applied
+        Periodic Boundary conditions are applied.
         """
-        if site + 1 == self.size:
+        neighbours = np.zeros(2)
+
+        if site + 1 == self.spins.shape[0]:
             right_ = self.spins[0]
         else:
             right_ = self.spins[site + 1]
@@ -110,27 +107,33 @@ class Lattice:
         else:
             left_ = self.spins[site - 1]
 
-        return [left_, right_]
+        neighbours[0], neighbours[1] = left_, right_
 
+        return neighbours
+
+    def update(self, delta_energy, delta_m) -> None:
+        """ Recalculate attributes of the lattice that depend on spin
+        """
+        self.m += delta_m / self.size # not true?
+        self.total_energy += delta_energy / self.size
 
 class Lattice2D:
     """Create a 2d lattice
 
      === Attributes ===
-        size: 2 dim tupple repersenting (num of rows, num of coloums)
-        energy: total energy of lattice
-        magnetization: total magnetization of the lattice
-        temp: we want our sytem to come to equilibrium at
-        beta: inverse of temp we want are ystem to come to equilibrium at
+        size: amount of spins in the lattice
+        energy: total energy in the lattice
+        m: magnetization per spin
+        temp: starting temperature
+        beta: inverse of temp we want our system to come to at equilibrium
         spins: ndarray repersenting the spins in our lattice
-
 
         Repersentation Invariants:
         temp = 0 or 1
         """
     size: Tuple
-    energy: float
-    magnetization: int
+    total_energy: float
+    m: float
     temp: int
     spins: np.ndarray
 
@@ -142,49 +145,28 @@ class Lattice2D:
         temp: the temp you want the sytem to start at, 0 or -1
         run_at: temperture you want the system to come to
         """
-        self.size = n
-        self.size_tot = n[1] * n[0]
-        columns = []
-        self.intial_temp = initial_temp
-        mag = []
-
-        for __ in range(n[0]):
-            if initial_temp == 0:
-                k = flip_coin(-1, 1)
-                u = [k for _ in range(n[1])]
-                mag.append(sum(u))
-            else:
-                u = [flip_coin(-1, 1) for _ in range(n[1])]
-                mag.append(sum(u))
-            columns.append(u)
-
-        self.spins = np.array(columns)
-        assert self.spins.shape == self.size
-
-        self.temp = run_at
-        self.beta = 1 / self.temp
-        self.magnetization = sum(mag)
-
-        interaction_ = []
-        for j in range(self.size[0]):
-            for k in range(self.size[1]):
-                spin_j_right = self._neighbours((j, k))[1]
-                interaction_.append(spin_j_right * self.spins[j, k])
-                spin_j_down = self._neighbours((j, k))[1]
-                interaction_.append(spin_j_down * self.spins[j, k])
-
-        self.energy = -1 * sum(interaction_) * self.beta
+        self.spins = np.zeros(n)
+        self.size = self.spins.size
+        self.temp = initial_temp
         self.beta = 1 / run_at
 
-    def __copy__(self):
-        """Return a copy of the lattice"""
-        other = Lattice2D(self.size, self.intial_temp, self.temp)
-        other.spins = self.spins.copy()
-        other.magnetization = self.magnetization
-        other.energy = self.energy
-        # assert other.magnetization == self.magnetization
-        # assert other.spins is not self.spins
-        return other
+        if initial_temp == 0:
+            k = flip_coin(-1, 1)
+            self.spins.fill(k)
+        else:
+            for i in range(self.spins.shape[0]):
+                for j in range(self.spins.shape[1]):
+                    self.spins[i, j] = flip_coin(-1, 1)
+
+        self.m = np.sum(self.spins) / self.size
+
+        interaction_ = np.zeros(self.spins.shape)
+        for i in range(self.spins.shape[0]):
+            for j in range(self.spins.shape[1]):
+                nn_spins = self._neighbours((i, j))
+                interaction_[i, j] = np.sum(nn_spins) * self.spins[i, j]
+
+        self.total_energy = -1 * np.sum(interaction_) / self.size
 
     def _neighbours(self, site: tuple) -> List[int]:
         """Return neighbouring spins [<left>, <right>, <above> , <below>].
@@ -195,7 +177,7 @@ class Lattice2D:
         y = site[1]
 
         # left right
-        if x + 1 == self.size[0]:
+        if x + 1 == self.spins.shape[0]:
             right_ = self.spins[0][y]
         else:
             right_ = self.spins[x + 1][y]
@@ -206,7 +188,7 @@ class Lattice2D:
             left_ = self.spins[x - 1][y]
 
         # up, down
-        if y + 1 == self.size[1]:
+        if y + 1 == self.spins.shape[1]:
             up_ = self.spins[x][0]
         else:
             up_ = self.spins[x][y + 1]
@@ -217,6 +199,12 @@ class Lattice2D:
             down_ = self.spins[x][y - 1]
 
         return [left_, right_, up_, down_]
+
+    def update(self, delta_energy, delta_m) -> None:
+        """ Recalculate attributes of the lattice that depend on spin
+        """
+        self.m += delta_m / self.size # not true?
+        self.total_energy += delta_energy / self.size 
 
 
 class Plotts:

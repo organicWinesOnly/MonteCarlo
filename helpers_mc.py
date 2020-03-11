@@ -12,32 +12,8 @@ import random as r
 
 # constants
 J = 1
-# N = 100
 
-
-def autocorrelation(maxtime: int, time: int, magnetization: List) -> float:
-    """Calculates the magnetic auto correlation function (3.21)
-
-    @:param maxtime: the total amount of time my system is in equilibrium
-    @:param time: time interested in
-    @:param: magnetization
-
-    ===Representation Invariants ====
-    0 <= time < maxtime: a value of 0 repersents the time at equilibrium
-    """
-    assert time != maxtime
-    maxtime_ = int(maxtime)
-    time_ = int(time)
-    diff = maxtime_ - time_
-    coeff = 1 / diff
-    times = np.arange(diff)
-    sum1 = sum(magnetization[t_prime] * magnetization[t_prime + time_] for
-               t_prime in times)
-    sum2 = sum(magnetization[t_prime] for t_prime in times)
-    sum3 = sum(magnetization[t_prime + time_] for t_prime in times)
-    return coeff * sum1 - (sum2 * sum3) * coeff ** 2
-
-
+# Functions
 def average_e(lst_: List, N) -> Union[float, int]:
     """Returns the avg of the list <lst_>"""
     return sum(lst_) / (len(lst_) * J * N)
@@ -87,11 +63,10 @@ def rms(input_: Union[List, np.array]):
         arr = input_.copy()
 
     arr_sq = arr.copy() ** 2
-    if np.mean(arr_sq) >= np.mean(arr) ** 2:
-        return np.sqrt(np.mean(arr_sq) - np.mean(arr) ** 2)
+    return np.sqrt(np.mean(arr_sq) - np.mean(arr) ** 2)
 
 
-def two_pnt_spec(input_: Union[List, np.array], beta):
+def two_pnt(input_: np.array):
     """Returns the two point correlation function (standard deviation
     of a set of data.
 
@@ -102,35 +77,11 @@ def two_pnt_spec(input_: Union[List, np.array], beta):
 
     Uses fromula rms = (<Q^2> - <Q>^2) * k * beta ** 2
     """
-    if isinstance(input_, list):
-        arr = np.array(input_.copy())
-    else:
-        arr = input_.copy()
+    arr = input_.copy()
 
     arr_sq = arr.copy() ** 2
 
-    return (np.mean(arr_sq) - np.mean(arr) ** 2) * (beta ** 2)
-
-
-def two_pnt_sus(input_: Union[List, np.array], beta):
-    """Returns the two point correlation function (standard deviation
-    of a set of data.
-
-    used for sus χ only
-
-    to find the sus per lattice site:
-     if using M divide by N, number of lattice sites
-     if using m multiply by N
-    Uses fromula rms = (<Q^2> - <Q>^2) * k * beta ** 2
-    """
-    if isinstance(input_, list):
-        arr = np.array(input_.copy())
-    else:
-        arr = input_.copy()
-
-    arr_sq = arr.copy() ** 2
-
-    return (np.mean(arr_sq) - np.mean(arr) ** 2) * beta
+    return (np.mean(arr_sq) - np.mean(arr) ** 2) 
 
 
 def u(beta):
