@@ -18,6 +18,7 @@ class metropolisAlgorithm2d(Simulation):
                            for p in self.temp]
         self.exp2 = np.exp(-4 * self.beta)
         self.exp1 = np.exp(-2 * self.beta)
+        self.size = config['lattice_size'][0] * config['lattice_size'][1] 
 
     def run(self):
         for j, lattice_ in enumerate(self.system):
