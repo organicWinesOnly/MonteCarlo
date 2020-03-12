@@ -5,7 +5,6 @@ directory.
 """
 
 from lattice import *
-from Errors import *
 from helpers_mc import *
 from autocorrelation import *
 
@@ -90,7 +89,6 @@ class Simulation:
         self.size = config['lattice_size']
         self.beta = np.array([1/t for t in self.temp])
         self.equilib_time = []
-        self.error = config['error']
 
     def run(self):
         """Run the simulation"""
@@ -132,7 +130,7 @@ class Simulation:
                 self.energy_spin[i] = np.mean(np.abs(energy_sim[self.equilib_time[i]:]))
         else:
             arr = self.ind_energy
-            for i, energy_energy in enumerate(arr):
+            for i, energy_sim in enumerate(arr):
                 self.energy_spin[i] = np.mean(np.abs(energy_sim))
 
     def magnetization_per_site(self, independent=False) -> None:

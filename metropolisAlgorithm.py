@@ -1,20 +1,15 @@
-"""Implementation of the metropolis algorithm with single-spin-flip dynamics.
+"""Implementation of the metropolis algorithm with single-spin-flip dynamics in
+a zero B field.
 """
 
 
 from simulation import *
-# import scipy.optimize as sp
 
 
 # ===========================================================================
 # Constants
 # ===========================================================================
-B = 0
 J = 1
-# k = 1
-N = 300  # number of spins
-m = -3.05765101e-03
-y_int = 1.12324380e+01
 
 # ===========================================================================
 # Simulation
@@ -83,17 +78,3 @@ class metropolisAlgorithm(Simulation):
 
         if number < accept[0]:
             self._change_state(original, site, accept[1])
-
-# ===========================================================================
-# Implementation
-# ===========================================================================
-# after 6000 points
-
-
-#if __name__ == '__main__':
-#    config_ = {'range': [10e-3, 5.02], 'step': 0.1, 'lattice_size': 300,
-#               'error_method': 12, 'temp': 1, 'num_rounds': 3000}
-#    sim = MetropolisAlgorithm(config_)
-#    sim.run()
-#    sim.correlation_time(4000)
-

@@ -3,7 +3,6 @@
 
 from simulation import *
 
-N = 64
 J = 1
 
 
