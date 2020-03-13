@@ -7,6 +7,8 @@ The different lattices contained are:
     Ising2D: represents a 2D isling lattice
     Potts: represents a 1D q-pott lattice
     Potts2D: represents a 2D q-pott lattice
+
+@author: organicWinesOnly
 """
 import numpy as np
 from typing import *

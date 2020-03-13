@@ -1,12 +1,13 @@
-"""run metropolis algorithm for 2d lattice
+"""run metropolis algorithm for 2d lattice.
+
+@author: organicWinesOnly
 """
 
 from simulation import *
 
-N = 64
-J = 1
-
-
+# ===========================================================================
+# Simulation
+# ===========================================================================
 class metropolisAlgorithm2d(Simulation):
     """Metropolis Algorithm.
     """

@@ -3,7 +3,7 @@ Monte Carlo Algorithms.
 
 Used for PHY371, Monte Carlo Simulations in Statistical Physics
 
-@author: Rhamel Roomes-Delpeache
+@author: organicWinesOnly
 last updated Nov 10, 2018"""
 
 from typing import Union, List, Any

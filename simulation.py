@@ -2,23 +2,18 @@
 
 File contains abstract class, Simulation, which will be used throughout the
 directory.
+
+@author: organicWinesOnly
 """
 
 from lattice import *
-from Errors import *
 from helpers_mc import *
 from autocorrelation import *
 
 # ===========================================================================
 # Constants
 # ===========================================================================
-B = 0
 J = 1
-# k = 1
-N = 300  # number of spins
-m = -3.05765101e-03
-y_int = 1.12324380e+01
-
 
 # ===========================================================================
 # Simulation
@@ -90,7 +85,6 @@ class Simulation:
         self.size = config['lattice_size']
         self.beta = np.array([1/t for t in self.temp])
         self.equilib_time = []
-        self.error = config['error']
 
     def run(self):
         """Run the simulation"""
