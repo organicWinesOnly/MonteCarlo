@@ -130,10 +130,10 @@ class Simulation:
                 self.energy_spin[i] = np.mean(np.abs(energy_sim))
 
     def magnetization_per_site(self, independent=False) -> None:
-        """Calculate the magnetizaion per site averged over all the states in
+        """Calculate the magnetization per site averaged over all the states in
         the simulation.
 
-        The output is a 1d arraya containing all the values for each
+        The output is a 1d array containing all the values for each
         configuration.
         """
         if independent == False:
@@ -148,7 +148,7 @@ class Simulation:
     def specific_heat(self) -> np.array:
         """ calculate the specific heat
 
-        correceteed march 2020
+        corrected march 2020
         """
         c = np.zeros(len(self.system))
         for i in range(len(self.system)):
@@ -166,7 +166,7 @@ class Simulation:
     def correlation_time(self) -> None:
         """Calculates the correlation time for each lattice.
 
-        The time retuned is rounded to the nearest int.
+        The time returned is rounded to the nearest int.
 
         This function finds the correlation time of each function then
         mutiplies it by 2"""
