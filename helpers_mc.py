@@ -84,6 +84,19 @@ def two_pnt(input_: np.array):
     return (np.mean(arr_sq) - np.mean(arr) ** 2) 
 
 
+def c(beta):
+    """ specific heat per spin, 1d lattice
+    """
+    return beta**2 * 1 / np.cosh(beta) ** 2
+
+
+def sus(beta):
+    """ susceptibility per spin, 1d lattice
+    """
+    return beta * np.exp(2 * beta)
+
+
 def u(beta):
-    beta_ = np.array(beta)
-    return (-np.tanh(beta_ * J)) / (np.tanh(1 / 0.4 * J))
+    """ energy per spin, 1d lattice
+    """
+    return -np.tanh(beta)

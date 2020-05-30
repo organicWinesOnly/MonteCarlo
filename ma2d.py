@@ -5,9 +5,15 @@
 
 from simulation import *
 
+<<<<<<< HEAD
 # ===========================================================================
 # Simulation
 # ===========================================================================
+=======
+J = 1
+
+
+>>>>>>> metropolis
 class metropolisAlgorithm2d(Simulation):
     """Metropolis Algorithm.
     """

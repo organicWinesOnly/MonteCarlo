@@ -1,9 +1,24 @@
+<<<<<<< HEAD
 """Implementation of the metropolis algorithm with single-spin-flip dynamics.
+=======
+"""Implementation of the metropolis algorithm with single-spin-flip dynamics in
+a zero B field.
+"""
+>>>>>>> metropolis
 
 @author: OrganicWinesOnly
 """
 
 from simulation import *
+<<<<<<< HEAD
+=======
+
+
+# ===========================================================================
+# Constants
+# ===========================================================================
+J = 1
+>>>>>>> metropolis
 
 # ===========================================================================
 # Simulation
@@ -71,4 +86,7 @@ class metropolisAlgorithm(Simulation):
 
         if number < accept[0]:
             self._change_state(original, site, accept[1])
+<<<<<<< HEAD
 
+=======
+>>>>>>> metropolis
