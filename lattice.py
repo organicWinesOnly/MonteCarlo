@@ -8,6 +8,7 @@ The different lattices contained are:
     Potts: represents a 1D q-pott lattice
     Potts2D: represents a 2D q-pott lattice
 
+last updated: May 31
 @author: organicWinesOnly
 """
 import numpy as np
@@ -31,7 +32,7 @@ class Spin:
     location: tuple
     considered: bool
 
-    def __init__(self, q: int, location_: tuple, set_=0):
+    def __init__(self, location_: tuple, set_=0):
         # set_ = 0 implies a value of the spin has no been assigned
         if set_ == 0:
             self.spin = flip_coin(-1, 1)
@@ -119,6 +120,10 @@ class Lattice:
         self.m += delta_m / self.size # not true?
         self.total_energy += delta_energy / self.size
 
+
+########################################################################
+# Lattice2D
+########################################################################
 class Lattice2D:
     """Create a 2d lattice
 
@@ -209,147 +214,6 @@ class Lattice2D:
         self.total_energy += delta_energy / self.size 
 
 
-class Plotts:
-    """Create a 2d lattice that can spin in q directions
-
-     === Attributes ===
-        size: 2 dim tupple repersenting (num of rows, num of coloums)
-        energy: total energy of lattice
-        magnetization: total magnetization of the lattice
-        temp: we want our sytem to come to equilibrium at
-        beta: inverse of temp we want are ystem to come to equilibrium at
-        spins: ndarray repersenting the spins in our lattice
-
-
-        Repersentation Invariants:
-        temp = 0 or 1
-        """
-    size: Tuple
-    energy: float
-    magnetization: int
-    temp: int
-    spins: np.ndarray
-
-    def __init__(self, n: tuple, q: int, initial_temp: int, run_at: float)\
-            -> None:
-        """Initailize a 2d lattice
-
-        === parameters ===
-        n: size of the lattice
-        temp: the temp you want the sytem to start at, 0 or -1
-        run_at: temperture you want the system to come to
-        """
-        self.size = n
-        columns = []
-        self.intial_temp = initial_temp
-        mag = []
-        self.state = q
-        self.size_tot = n[1] * n[0]
-
-        k = 0
-        for i in range(n[0]):
-            if initial_temp == 0:
-                if k == 0:
-                    k = flip_coin(1, -1 )# r.randint(1, q)
-                u = [Spin(q, (i, i_), set_=k) for i_ in range(n[1])]
-                mag.append(sum(item.spin for item in u))
-            else:
-                u = [Spin(q, (i, i_)) for i_ in range(n[1])]
-                mag.append(sum(item.spin for item in u))
-            columns.append(u)
-
-        self.spins = columns
-        # assert self.spins.shape == self.size
-
-        self.temp = run_at
-        self.magnetization = sum(mag)
-
-        interaction_ = []
-        for column in self.spins:
-            for spin_loc in column:
-                spin_j_right = self.neighbours(spin_loc)[1].spin
-                interaction_.append(spin_j_right *
-                                    spin_loc.spin)
-                spin_j_down = self.neighbours(spin_loc)[3].spin
-                interaction_.append(spin_j_down *
-                                    spin_loc.spin)
-                spin_j_left = self.neighbours(spin_loc)[2].spin
-                interaction_.append(spin_j_left *
-                                    spin_loc.spin)
-                spin_j_up = self.neighbours(spin_loc)[0].spin
-                interaction_.append(spin_j_up *
-                                    spin_loc.spin)
-
-        self.beta = 1 / run_at
-        self.energy = -1 * sum(interaction_) * self.beta
-
-    def __copy__(self):
-        """Return a copy of the lattice"""
-        other = Plotts(self.size, self.state, self.intial_temp, self.temp)
-        other.spins = self.spins.copy()
-        other.magnetization = self.magnetization
-        other.energy = self.energy
-        # assert other.magnetization == self.magnetization
-        # assert other.spins is not self.spins
-        return other
-
-    def neighbours(self, spin: Spin) -> List[Spin]:
-        """Return neighbouring spins [<left>, <right>, <above> , <below>].
-
-        Periodic Boundary conditions are applied
-        """
-        x = spin.location[0]  # corridnates of lattice
-        y = spin.location[1]
-
-        # left right
-        if x + 1 == self.size[0]:
-            right_ = self.spins[0][y]
-        else:
-            right_ = self.spins[x + 1][y]
-
-        if x - 1 < 0:
-            left_ = self.spins[-1][y]
-        else:
-            left_ = self.spins[x - 1][y]
-
-        # up, down
-        if y + 1 == self.size[1]:
-            up_ = self.spins[x][0]
-        else:
-            up_ = self.spins[x][y + 1]
-
-        if y - 1 < 0:
-            down_ = self.spins[x][-1]
-        else:
-            down_ = self.spins[x][y - 1]
-
-        return [left_, right_, up_, down_]
-
-    def update(self):
-        interaction_ = []
-        for column in self.spins:
-            for spin_loc in column:
-                spin_j_right = self.neighbours(spin_loc)[1].spin
-                interaction_.append(spin_j_right *
-                                    spin_loc.spin)
-                spin_j_down = self.neighbours(spin_loc)[-1].spin
-                interaction_.append(spin_j_down *
-                                    spin_loc.spin)
-                spin_j_left = self.neighbours(spin_loc)[2].spin
-                interaction_.append(spin_j_left *
-                                    spin_loc.spin)
-                spin_j_up = self.neighbours(spin_loc)[0].spin
-                interaction_.append(spin_j_up *
-                                    spin_loc.spin)
-
-        self.energy = -1 * sum(interaction_) * self.beta
-        magnet = []
-        for i in range(self.size[0]):
-            magnet.append(sum(self.spins[i][p].spin for p in range(self.size[1])))
-
-        self.magnetization = sum(magnet)
-
-
 class Plotts2:
     """Create a 2d lattice that can spin in q directions
 
@@ -384,7 +248,6 @@ class Plotts2:
         columns = []
         self.intial_temp = initial_temp
         mag = []
-        self.state = q
         self.size_tot = n[1] * n[0]
 
         for i in range(n[0]):
@@ -424,7 +287,7 @@ class Plotts2:
 
     def __copy__(self):
         """Return a copy of the lattice"""
-        other = Plotts(self.size, self.state, self.intial_temp, self.temp)
+        other = Plotts(self.size, self.intial_temp, self.temp)
         other.spins = self.spins.copy()
         other.magnetization = self.magnetization
         other.energy = self.energy
@@ -487,6 +350,123 @@ class Plotts2:
             magnet.append(sum(self.spins[i][p].spin for p in range(self.size[1])))
 
         self.magnetization = sum(magnet)
+
+
+########################################################################
+# rectLattice
+########################################################################
+def populate(x: np.ndarray, n: tuple, temp):
+    spin_counter = 0  # the sum of spin values
+
+    if len(n) == 1:
+        for i in range(n[0]):
+            x[i] = Spin((i,), temp)
+            spin_counter += x[i].spin
+
+    elif len(n) == 2:
+        for i in range(n[0]):
+            for j in range(n[1]):   
+                x[i][j] = Spin((i,j), temp)
+                spin_counter += x[i][j].spin
+
+    else:
+        for i in range(n[0]):
+            for j in range(n[1]):   
+                for k in range(n[2])
+                    x[i][j][k] = Spin((i,j, k), temp)
+                    spin_counter += x[i][j][k].spin
+
+    return spin_counter
+
+
+class rectLattice:
+    """Create a rectangle lattice (straight that can spin 
+    where the elements are objects of the spin class.
+
+     === Attributes ===
+    shape: 2 dimensional tuple representing(num of rows, num of columns)
+    total_energy: energy per spin 
+    m: magnetization per spin
+    temp: the starting temperature (0 -> absolute zero, 1 -> infinity)
+    spins: ndarray representing the spins in our lattice
+    beta: energy at equilibrium
+
+    Representation Invariants:
+    temp = 0 or 1
+    """
+    shape: tuple
+    total_energy: float
+    m: int
+    temp: int
+    spins: np.ndarray
+    beta = float
+
+    def __init__(self, n: tuple, initial_temp: int, run_at: float)\
+            -> None:
+        """Initialize a 2d lattice
+
+        === parameters ===
+        n: shape of the lattice
+        temp: the temp you want the system to start at, 0 or -1
+        run_at: temperature you want the system to come to
+        """
+        # dimension of lattice
+        dim = len(n)
+        
+        self.shape = n
+        self.temp = initial_temp
+        self.beta = 1 / run_at
+
+        # build lattice
+        self.spins = np.zeros(self.shape)
+        self.m = populate(self.spins, dim. self.temp) / self.spins.size
+
+        # compute the energy of the lattice
+        interaction_ = np.zeros(n)
+
+        for k in range(n):
+            spin_j = self._neighbours(k)
+            interaction_[k] = np.sum(spin_j) * self.spins[k]
+
+        self.total_energy = -1 * np.sum(interaction_) /self.size # J = 1
+
+
+    def _neighbours(self, atom: Spin) -> List[int]:
+        """Return neighbouring spins [<left>, <right>, <above> , <below>].
+
+        Periodic Boundary conditions are applied
+        """
+        x, y = atom.location
+
+        # left right
+        if x + 1 == self.spins.shape[0]:
+            right_ = self.spins[0][y]
+        else:
+            right_ = self.spins[x + 1][y]
+
+        if x - 1 < 0:
+            left_ = self.spins[-1][y]
+        else:
+            left_ = self.spins[x - 1][y]
+
+        # up, down
+        if y + 1 == self.spins.shape[1]:
+            up_ = self.spins[x][0]
+        else:
+            up_ = self.spins[x][y + 1]
+
+        if y - 1 < 0:
+            down_ = self.spins[x][-1]
+        else:
+            down_ = self.spins[x][y - 1]
+
+        return [left_, right_, up_, down_]
+
+    def update(self, delta_energy, delta_m) -> None:
+        """ Recalculate attributes of the lattice that depend on spin
+        """
+        self.m += delta_m / self.size # not true?
+        self.total_energy += delta_energy / self.size 
 
 
 if __name__ == '__main__':

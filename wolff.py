@@ -1,11 +1,9 @@
 """Wolff cluster algoritim for q-state potts spin system
+
+last updated: May 30, 2020
 """
 
-import matplotlib.pyplot as mp
 from metropolisAlgortithm import Simulation
-from lattice import Plotts, Spin, Plotts3
-from Errors import *
-from typing import List
 
 J = 1
 N = 100
@@ -26,8 +24,11 @@ class Wolff(Simulation):
         """Extend original initalizer.
         """
         super().__init__(config)
+        # the range of equilibrium temperatures 
         iterations = np.arange(config['range'][0], config['range'][1],
                                config['step'])
+
+        # a tuple implies the lattice is two dimensional
         if isinstance(config['lattice_size'], tuple):
             self.system = [Plotts(config['lattice_size'], config['temp'],
                                   config['num_states'], p) for p in iterations]
@@ -129,109 +130,3 @@ class Wolff(Simulation):
         if value < 1-expont:
             return True
         return False
-
-
-class WolffPotts(Simulation):
-    """Run a wolff for 3 state potts algorithim
-    === Attributes ===
-    system: 
-    q_states
-    length_c
-    spin_value_tup: 
-    """
-    system: List[Plotts3]
-    q_states: int
-    lenght_c: List
-    spin_value_tup: List
-
-    def __init__(self, config):
-        """
-        Extend original initalizer
-        """
-        super().__init__(config)
-        iterations = np.arange(config['range'][0], config['range'][1],
-                               config['step'])
-        if isinstance(config['lattice_size'], tuple):
-            self.system = [Plotts3(config['lattice_size'], config['temp'],
-                                   config['num_states'], p) for p in iterations]
-        self.q_states = config['num_states']
-        self.lenght_c = []
-
-    def run(self):
-        """Pass"""
-        for p_lattice_ in self.system:
-            e_energy = []
-            e_mag = []
-            k = 0
-            for _ in range(self.num_rounds):
-                copy_ = p_lattice_.__copy__()
-                cluster_to_flip = self._generate_cluster(p_lattice_)
-                self._flip_cluster(cluster_to_flip)
-                assert copy_ != p_lattice_
-                p_lattice_.update()
-                e_energy.append(p_lattice_.energy)
-                e_mag.append(abs(p_lattice_.magnetization))
-                self.time += 1
-                if not len(cluster_to_flip) / 100 >= 0.5:
-                    k += 1
-            print(k)
-
-            self.eq_energy.append(e_energy)
-            self.eq_magnetization.append(e_mag)
-
-        self.time /= len(self.system)
-
-    def _generate_cluster(self, p_lattice: Plotts) -> List[Spin]:
-        """generate cluster"""
-
-        y = r.randint(0, p_lattice.size[0] - 1)
-        x = r.randint(0, p_lattice.size[1] - 1)
-
-        cluster = [p_lattice.spins[y][x]]
-        for spin in cluster:
-            neighbours = p_lattice.neighbours(spin)
-            for neighbour in neighbours:
-                if not neighbour.cluster:
-                    if neighbour.spin == p_lattice.spins[y][x].spin:
-                        if self.p_add(p_lattice):
-                            neighbour.cluster = True
-                            cluster.append(neighbour)
-
-        for spin in cluster:
-            spin.considered = False
-            spin.cluster = False
-
-        self.lenght_c.append(len(cluster))
-        return cluster
-
-    def _flip_cluster(self, cluster) -> None:
-        """flip a cluster in the lattice
-        """
-        new_spin = r.randint(1, self.q_states)
-        while new_spin == cluster[0].spin:
-            new_spin = r.randint(1, self.q_states)
-        for spin in cluster:
-            spin.spin = new_spin
-            spin.cluster = False
-
-    def p_add(self, p_lattice: Plotts):
-        value = np.random.random_sample()
-        expont = np.e ** (-2 * p_lattice.beta * J)
-        if value < 1-expont:
-            return True
-        return False
-
-    def plot_system(self):
-        for lattice_num in range(len(self.system)):
-            mp.figure()
-            times_ = np.arange(self.time)[:1000]
-            # mp.plot(times_, self.eq_energy[lattice_num][:1000], 'b.',
-            #         label='Internal Energy')
-            mp.plot(times_, self.eq_magnetization[lattice_num][:1000], 'r.',
-                    label='Magnetization')
-            # auto_corr = self.auto_correlation(times_)
-            # mp.semilogy(times_, auto_corr)
-            mp.title('Energy and Magnetization vs Time for {}K'.format(
-                self.temp[lattice_num]))
-            mp.legend()
-            mp.show()
